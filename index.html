@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ทำไปทำไม⁇ – Day Project Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-elevated: #020617;
+      --bg-card: rgba(15,23,42,0.95);
+      --border-subtle: #111827;
+      --border-strong: #1f2937;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --shadow-card: 0 14px 32px rgba(0,0,0,0.65);
+    }
+
+    body.theme-light {
+      --bg-main: #f3f4f6;
+      --bg-elevated: #f9fafb;
+      --bg-card: #ffffff;
+      --border-subtle: #e5e7eb;
+      --border-strong: #d1d5db;
+      --text-main: #111827;
+      --text-soft: #6b7280;
+      --accent: #2563eb;
+      --accent-soft: rgba(37,99,235,0.10);
+      --shadow-card: 0 10px 26px rgba(15,23,42,0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    /* Loading Screen */
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    .loader-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .loader-logo {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .loader-sub {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+    .loader-spinner {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 3px solid rgba(148,163,184,0.45);
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+      margin-bottom: 8px;
+    }
+    .loader-text {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Layout */
+    .app-shell {
+      flex: 1;
+      display: flex;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, var(--accent-soft), transparent 55%),
+        var(--bg-main);
+    }
+    .sidebar {
+      width: 230px;
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border-subtle);
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: var(--bg-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: 1px solid var(--border-strong);
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .brand-title {
+      font-size: 0.96rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .brand-sub {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+    .nav-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--text-soft);
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      font-size: 0.85rem;
+      padding: 7px 9px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    }
+    .nav-item span.icon {
+      font-size: 0.9rem;
+      opacity: 0.95;
+    }
+    .nav-item.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+    .nav-item:hover:not(.active) {
+      background: var(--bg-main);
+      border-color: var(--border-subtle);
+      transform: translateY(-1px);
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .main {
+      flex: 1;
+      padding: 18px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .page-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-icon {
+      font-size: 1.2rem;
+    }
+    .page-chip {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .page-sub {
+      font-size: 0.86rem;
+      color: var(--text-soft);
+    }
+    .top-right {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .badge-soft {
+      font-size: 0.75rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-soft);
+    }
+    .theme-toggle {
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-soft);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      align-items: center;
+    }
+    .search-input-wrap {
+      flex: 1;
+      min-width: 180px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 10px 8px 28px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input::placeholder {
+      color: var(--text-soft);
+    }
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+    .filter-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+    .filter-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .filter-pill.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .instructions {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .count-text {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .card {
+      position: relative;
+      border-radius: 14px;
+      padding: 11px 11px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 38px rgba(0,0,0,0.7);
+      border-color: var(--accent);
+    }
+    .card-type {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    .card-desc {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      min-height: 32px;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .tag {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-soft);
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      gap: 6px;
+    }
+    .open-btn {
+      border-radius: 6px; /* สไตล์ปุ่มเหลี่ยม */
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border: 1px solid var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    }
+    .open-btn span.icon {
+      font-size: 0.85rem;
+    }
+    .open-btn:hover {
+      background: var(--accent);
+      color: #0b1120;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15,23,42,0.5);
+    }
+    .card-meta {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      text-align: right;
+    }
+
+    .empty-state, .about-panel, .home-panel {
+      margin-top: 16px;
+      padding: 14px 12px;
+      border-radius: 14px;
+      border: 1px dashed var(--border-subtle);
+      background: var(--bg-card);
+      font-size: 0.82rem;
+      color: var(--text-soft);
+    }
+
+    .home-panel-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+    .home-panel-sub {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .about-title {
+      font-size: 0.98rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .social-links {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .social-links a {
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-soft);
+      text-decoration: none;
+    }
+    .social-links a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+
+    @media (max-width: 720px) {
+      .sidebar {
+        display: none;
+      }
+      .main {
+        padding: 14px 14px 18px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <!-- Loading overlay -->
+  <div class="loader-overlay" id="loader">
+    <div class="loader-logo">เว็บสำหรับคนว่างๆ</div>
+    <div class="loader-sub">"รักนะไออ้วนไอหนาหมา🐶🤍"</div>
+    <div class="loader-spinner"></div>
+    <div class="loader-text">กำลังโหลดโปรเจกต์ของเดย์...</div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">D</div>
+        <div class="brand-text">
+          <div class="brand-title">DAY HUB</div>
+          <div class="brand-sub">สำหรับคนว่าง ๆ</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-title">เมนู</div>
+        <div class="nav-list">
+          <div class="nav-item active" data-view="home">
+            <span class="icon">🏠</span> <span>หน้าแรก</span>
+          </div>
+          <div class="nav-item" data-view="projects">
+            <span class="icon">📂</span> <span>โปรเจกต์ทั้งหมด</span>
+          </div>
+          <div class="nav-item" data-view="secret">
+            <span class="icon">💌</span> <span>โปรเจกต์แชทลับ</span>
+          </div>
+          <div class="nav-item" data-view="about">
+            <span class="icon">👤</span> <span>เกี่ยวกับผม</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        แก้ไข/เพิ่มโปรเจกต์ได้ในไฟล์ <strong>index.html</strong><br />
+        (ค้นหาคำว่า <code>const projects = [</code>)
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="top-bar">
+        <div class="top-left">
+          <div class="page-title">
+            <span class="page-icon">🐶</span>
+            <span>ทำไปทำไม⁇</span>
+            <span class="page-chip">PROJECT HUB</span>
+          </div>
+          <div class="page-sub">
+            ผมสร้างเพื่อให้หายคิดถิงคนๆหนึ่ง🙃
+          </div>
+        </div>
+        <div class="top-right">
+          <div class="badge-soft">Static · GitHub Pages Ready</div>
+          <button id="themeToggle" class="theme-toggle">
+            <span id="themeIcon">🌙</span>
+            <span id="themeLabel">Dark mode</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="controlsArea">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input id="searchInput" class="search-input" type="text"
+                   placeholder="ค้นหาชื่อโปรเจกต์ / คำอธิบาย / tag..." />
+          </div>
+          <div class="filter-pill-row">
+            <button class="filter-pill active" data-cat="all">ทั้งหมด</button>
+            <button class="filter-pill" data-cat="message">แชทลับ / ข้อความ</button>
+            <button class="filter-pill" data-cat="tool">เครื่องมือ</button>
+            <button class="filter-pill" data-cat="other">อื่น ๆ</button>
+          </div>
+        </div>
+
+        <div class="instructions">
+          <span>วิธีเพิ่มโปรเจกต์: เปิดไฟล์ <strong>index.html</strong> แล้วแก้ไขส่วน <strong>const projects = [...]</strong></span>
+          <span id="countText" class="count-text"></span>
+        </div>
+      </div>
+
+      <section id="homePanel" class="home-panel">
+        <div class="home-panel-title">ยินดีต้อนรับสู่เว็บสำหรับคนว่าง ๆ ของเดย์</div>
+        <div class="home-panel-sub">
+          ตรงนี้คือหน้ารวมโปรเจกต์ที่เดย์สร้างไว้เอาให้คนพิเศษดู ทั้งเว็บแชทลับ เครื่องมือทดลอง และโปรเจกต์อื่น ๆ
+          เลือกดูโปรเจกต์จากการ์ดด้านล่าง หรือใช้เมนูด้านซ้ายเพื่อเปลี่ยนหน้าได้เลย
+        </div>
+      </section>
+
+      <section id="aboutPanel" class="about-panel" style="display:none;">
+        <div class="about-title">เกี่ยวกับผม</div>
+        <div>
+          เว็บนี้ทำขึ้นมาเพื่อรวมลิงก์โปรเจกต์ต่าง ๆ ที่ผมทำไว้ ทั้งเว็บเล่น ๆ เว็บส่งข้อความลับ และเครื่องมือทดลองต่าง ๆ
+          ถ้าคุณได้ลิงก์มาจากผม แสดงว่าคุณเป็นคนพิเศษคนนึงในชีวิตผมแล้วแหละ 🙂
+        </div>
+      </section>
+
+      <div id="grid" class="grid"></div>
+
+      <div id="emptyState" class="empty-state" style="display:none;">
+        ไม่พบโปรเจกต์ที่ตรงกับคำค้นหรือหมวดหมู่ที่เลือก
+      </div>
+
+      <footer>
+        <span>Made with overthinking · by Day</span>
+
+        <span class="social-links">
+          <!-- เปลี่ยนลิงก์ตรง href ให้เป็นของเดย์เอง -->
+          <a href="https://www.facebook.com/USERNAME_เดย์" target="_blank" rel="noopener noreferrer">📘 Facebook</a>
+          <a href="https://www.instagram.com/USERNAME_เดย์" target="_blank" rel="noopener noreferrer">📸 Instagram</a>
+          <a href="https://line.me/ti/p/ลิงก์ไลน์เดย์" target="_blank" rel="noopener noreferrer">💬 Line</a>
+        </span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Project data (ปรับแก้ตรงนี้)
+    // category: "message" | "tool" | "other"
+    // secret: true = โปรเจกต์แชทลับ
+    // -----------------------------
+    const projects = [
+      {
+        id: "secret-message-qr",
+        title: "Secret Message Link + Reply + QR",
+        type: "Web / Message",
+        category: "message",
+        secret: true,
+        description: "เว็บส่งข้อความลับ ใส่เพลง ช่องทางติดต่อ มีตอบกลับได้ + นับจำนวนครั้ง + QR code พร้อมส่งให้คนพิเศษ",
+        url: "https://buisme.github.io/0004/",
+        tags: ["secret", "message", "qr", "reply"],
+        badge: "Pinned"
+      },
+      {
+        id: "project-hub",
+        title: "Day Project Hub",
+        type: "Web / Index",
+        category: "other",
+        secret: false,
+        description: "หน้ารวมลิงก์โปรเจกต์ทั้งหมดของเดย์ เอาไว้ส่งทีเดียวแล้วให้คนเลือกกดเข้าไปดูเอง",
+        url: "#",
+        tags: ["index", "hub"],
+        badge: "This site"
+      },
+      {
+        id: "placeholder-tool",
+        title: "ช่องว่างสำหรับโปรเจกต์เครื่องมือถัดไป",
+        type: "Tool / Utility",
+        category: "tool",
+        secret: false,
+        description: "เว้นไว้สำหรับโปรเจกต์ใหม่ของเดย์ เช่น เครื่องคิดเลข, ตัวช่วยเรียน, ตัวช่วยวงจร ฯลฯ",
+        url: "#",
+        tags: ["tool", "future"],
+        badge: ""
+      }
+    ];
+
+    const gridEl = document.getElementById("grid");
+    const emptyStateEl = document.getElementById("emptyState");
+    const searchInput = document.getElementById("searchInput");
+    const countText = document.getElementById("countText");
+    const homePanel = document.getElementById("homePanel");
+    const aboutPanel = document.getElementById("aboutPanel");
+    const controlsArea = document.getElementById("controlsArea");
+
+    let currentCategory = "all";
+    let currentView = "home";
+
+    function getFilteredProjects() {
+      const query = (searchInput.value || "").toLowerCase().trim();
+      return projects.filter(p => {
+        // view filter
+        if (currentView === "secret" && !p.secret) return false;
+        // category filter
+        if (currentCategory !== "all" && p.category !== currentCategory) return false;
+        // search filter
+        if (!query) return true;
+        const haystack = (p.title + " " + p.description + " " + (p.tags || []).join(" ")).toLowerCase();
+        return haystack.includes(query);
+      });
+    }
+
+    function renderProjects() {
+      const filtered = getFilteredProjects();
+      gridEl.innerHTML = "";
+
+      if (!filtered.length && (currentView === "projects" || currentView === "secret" || currentView === "home")) {
+        emptyStateEl.style.display = "block";
+      } else {
+        emptyStateEl.style.display = "none";
+      }
+
+      filtered.forEach(p => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const typeEl = document.createElement("div");
+        typeEl.className = "card-type";
+        typeEl.textContent = p.type || "Project";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "card-title";
+        titleEl.textContent = p.title;
+
+        const descEl = document.createElement("div");
+        descEl.className = "card-desc";
+        descEl.textContent = p.description || "";
+
+        const tagRow = document.createElement("div");
+        tagRow.className = "tag-row";
+        (p.tags || []).forEach(tag => {
+          const t = document.createElement("div");
+          t.className = "tag";
+          t.textContent = "#" + tag;
+          tagRow.appendChild(t);
+        });
+
+        const footer = document.createElement("div");
+        footer.className = "card-footer";
+
+        const a = document.createElement("a");
+        a.className = "open-btn";
+        a.href = p.url || "#";
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.innerHTML = '<span class="icon">↗</span><span>เปิดโปรเจกต์</span>';
+
+        const meta = document.createElement("div");
+        meta.className = "card-meta";
+        meta.textContent = p.badge || "";
+
+        footer.appendChild(a);
+        footer.appendChild(meta);
+
+        card.appendChild(typeEl);
+        card.appendChild(titleEl);
+        card.appendChild(descEl);
+        card.appendChild(tagRow);
+        card.appendChild(footer);
+
+        gridEl.appendChild(card);
+      });
+
+      // update count
+      countText.textContent = `แสดง ${filtered.length} จากทั้งหมด ${projects.length} โปรเจกต์`;
+    }
+
+    // Sidebar navigation
+    const navItems = document.querySelectorAll(".nav-item");
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const view = item.dataset.view || "home";
+        currentView = view;
+
+        navItems.forEach(i => i.classList.toggle("active", i === item));
+
+        if (view === "about") {
+          aboutPanel.style.display = "block";
+          homePanel.style.display = "none";
+          controlsArea.style.display = "none";
+          gridEl.innerHTML = "";
+          emptyStateEl.style.display = "none";
+          countText.textContent = "";
+        } else if (view === "home") {
+          aboutPanel.style.display = "none";
+          homePanel.style.display = "block";
+          controlsArea.style.display = "block";
+          renderProjects();
+        } else {
+          aboutPanel.style.display = "none";
+          homePanel.style.display = "none";
+          controlsArea.style.display = "block";
+          renderProjects();
+        }
+      });
+    });
+
+    // Category pills
+    const filterPills = document.querySelectorAll(".filter-pill");
+    filterPills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        const cat = pill.dataset.cat || "all";
+        currentCategory = cat;
+        filterPills.forEach(p => p.classList.toggle("active", p === pill));
+        if (currentView === "about") return;
+        renderProjects();
+      });
+    });
+
+    // Search
+    searchInput.addEventListener("input", () => {
+      if (currentView === "about") return;
+      renderProjects();
+    });
+
+    // Theme toggle
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeLabel = document.getElementById("themeLabel");
+
+    function applyTheme(theme) {
+      if (theme === "light") {
+        document.body.classList.remove("theme-dark");
+        document.body.classList.add("theme-light");
+        themeIcon.textContent = "☀️";
+        themeLabel.textContent = "Light mode";
+      } else {
+        document.body.classList.remove("theme-light");
+        document.body.classList.add("theme-dark");
+        themeIcon.textContent = "🌙";
+        themeLabel.textContent = "Dark mode";
+      }
+      try {
+        localStorage.setItem("day-hub-theme", theme);
+      } catch (e) {}
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.contains("theme-dark");
+      applyTheme(isDark ? "light" : "dark");
+    });
+
+    (function initTheme() {
+      let saved = null;
+      try {
+        saved = localStorage.getItem("day-hub-theme");
+      } catch (e) {}
+      if (saved === "light" || saved === "dark") {
+        applyTheme(saved);
+      } else {
+        applyTheme("dark");
+      }
+    })();
+
+    // Loading overlay: 3 วินาที + รอ load event
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        const loader = document.getElementById("loader");
+        if (loader) {
+          loader.classList.add("hidden");
+        }
+      }, 3000);
+    });
+
+    // Initial render
+    renderProjects();
+  </script>
+</body>
+</html>
